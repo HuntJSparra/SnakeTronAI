@@ -1,0 +1,13 @@
+/.gradle/
+*.class
+*.jar
+*.zip
+*.gradle
+build/distributions/SnakeAI.tar
+build/scripts/SnakeAI
+build/scripts/SnakeAI.bat
+build/tmp/jar/MANIFEST.MF
+libs/Getting Started with Neuroph 2.98.pdf
+libs/LICENSE.txt
+libs/RELEASE_NOTES.txt
+or_percepton.nnet

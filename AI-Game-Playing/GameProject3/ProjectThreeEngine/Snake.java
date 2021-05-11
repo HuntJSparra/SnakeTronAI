@@ -4,10 +4,10 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class Snake {
-    int play_num;
-    List<SnakePiece> body;
-    HeadPiece head;
-    int max_len;
+    public int play_num;
+    public List<SnakePiece> body;
+    public HeadPiece head;
+    public int max_len;
 
     public HeadPiece getHead(){
 	return head;

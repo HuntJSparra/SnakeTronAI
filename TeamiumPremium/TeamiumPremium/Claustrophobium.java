@@ -14,7 +14,7 @@ public class Claustrophobium implements Player {
 
     public void begin(GameState state, int play) {
         this.me = play;
-    }
+    }   
 
     public DirType getMove(GameState state) {
         Random rand = new Random();
