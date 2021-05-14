@@ -46,7 +46,8 @@ public class Claustrophobium implements Player {
                 goodDirections.add(dir);
             }
         }
-        return goodDirections.get(rand.nextInt(goodDirections.size()));
+        return goodDirections.size() > 0 ? goodDirections.get(rand.nextInt(goodDirections.size())) :
+                DirType.North;
     }
 
     public String getPlayName() {

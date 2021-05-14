@@ -4,18 +4,22 @@ import ProjectThreeEngine.DirType;
 import ProjectThreeEngine.GameState;
 import ProjectThreeEngine.Player;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+
 import org.neuroph.core.NeuralNetwork;
-import org.neuroph.core.data.DataSet;
+import org.neuroph.core.data.*;
 import org.neuroph.nnet.MultiLayerPerceptron;
+import org.neuroph.nnet.learning.BackPropagation;
+import org.neuroph.util.NeuronProperties;
 import org.neuroph.util.TransferFunctionType;
 
 /**
  */
 public class NeuroPhremiumPlayer implements Player {
 
-    NeuralNetwork neuralNetwork;
+    NeuralNetwork<BackPropagation> neuralNetwork;
    
     List<Integer> pastDecisions;
     List<double[]> pastStates;
@@ -27,9 +31,16 @@ public class NeuroPhremiumPlayer implements Player {
         neuronsInLayers.add(1536);
         neuronsInLayers.add(512);
         neuronsInLayers.add(4);
-        neuralNetwork = new MultiLayerPerceptron(neuronsInLayers, TransferFunctionType.RECTIFIED);
-        pastDecisions = new LinkedList<>();
-        pastStates = new LinkedList<>();
+
+        /*NeuronProperties neuronProperties = new NeuronProperties();
+        neuronProperties.setProperty("useBias", true);
+        neuronProperties.setProperty("transferFunction", LeakyRectified.class);*/
+
+        neuralNetwork = new MultiLayerPerceptron(neuronsInLayers, TransferFunctionType.TANH);
+        neuralNetwork.getLearningRule().setMaxIterations(1);
+
+        pastDecisions = new ArrayList<Integer>();
+        pastStates = new ArrayList<double[]>();
     }
     
     @Override
@@ -55,6 +66,7 @@ public class NeuroPhremiumPlayer implements Player {
         
         pastDecisions.add(index);
         pastStates.add(input);
+
         
         return decision;
     }
@@ -68,11 +80,24 @@ public class NeuroPhremiumPlayer implements Player {
     public void finalScoreOfGame(double score) {
         
         DataSet trainingSet = new DataSet(1536, 4);
+
+        if (pastDecisions.size() != pastStates.size()) {
+            System.err.println("Past decisions and past states sizes are not equal before adjusting.");
+        }
         
+        for (int i = 0; i < pastDecisions.size(); i++) {
+            Integer pastDecision = pastDecisions.get(i);
+            double[] pastState = pastStates.get(i);
+            double[] desiredOutput = predict(pastState);
+            desiredOutput[pastDecision] = score;
+            trainingSet.add(new DataSetRow(pastState, desiredOutput));
+        }
         
-        
-        
+        //neuralNetwork.getLearningRule().doOneLearningIteration(trainingSet);
         neuralNetwork.learn(trainingSet);
+        
+        this.pastDecisions.clear();
+        this.pastStates.clear();
     }
 
     @Override

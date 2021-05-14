@@ -51,7 +51,7 @@ public class NeuroSnakeUtilities {
                     index = 5;
                 }
                 
-                ArrayList<Double> encoding = new ArrayList<>(6);
+                ArrayList<Double> encoding = new ArrayList<>(Collections.nCopies(6, 0.0));
                 encoding.set(index, 1d);
                 
                 dataRow.addAll(encoding);
