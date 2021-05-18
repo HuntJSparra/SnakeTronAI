@@ -9,24 +9,25 @@ import ProjectThreeEngine.*;
 public class NeuroDriver {
     public static void main(String[] args) {
         Claustrophobium claustrophobium = new Claustrophobium();
-        NeuroPhremiumPlayer neuroPhremiumPlayer = new NeuroPhremiumPlayer();
+        DeepQiumPlayer premiumAI = new DeepQiumPlayer();
 
-        int games = Integer.parseInt(args[0]);
+        int games = 0;
+        int gameLimit = Integer.parseInt(args[0]);
         int turnLimit = Integer.parseInt(args[1]);
 
-        while (games > 0) {
+        while (games < gameLimit) {
 
-            GameState gameState = new GameState("Claustrophobium", "NeuroPhremiumPlayer");
+            GameState gameState = new GameState("Claustrophobium", "DeepQiumPlayer");
 
             claustrophobium.begin(new GameState(gameState), 0);
-            neuroPhremiumPlayer.begin(new GameState(gameState), 1);
+            premiumAI.begin(new GameState(gameState), 1);
 
             int turnNum = 0;
             
             int winner = -1;
 
             while (true) {
-                gameState = nextTurn(gameState, claustrophobium, neuroPhremiumPlayer);
+                gameState = nextTurn(gameState, claustrophobium, premiumAI);
                 turnNum++;
 
                 //If we hit the turn limit, the longer snake wins
@@ -42,15 +43,20 @@ public class NeuroDriver {
                 }
 	    	}
 
-            int won = winner == 1 ? 1 : -1;
-            double finalScoreOfGame = (won / turnNum);
-            neuroPhremiumPlayer.finalScoreOfGame(finalScoreOfGame);
+            double won = winner == 1 ? 1 : -1;
+            double finalScoreOfGame = ((won / turnNum) + 1) / 2;
+            // double finalScoreOfGame = gameState.getSnake(1).getBody().size() / 100.0;
+            premiumAI.finalScoreOfGame(finalScoreOfGame);
 
-            System.out.println("Turns elapsed: " + turnNum);
-            System.out.println("Winner: " + winner);
-            System.out.println("Snake length: " + (gameState.getSnake(1).getBody().size() + 1));
+            System.out.println("GAME #" + games);
+            System.out.println("\tTurns elapsed: " + turnNum);
+            System.out.println("\tWinner: " + winner);
+            System.out.println("\tSnake length: " + (gameState.getSnake(1).getBody().size() + 1));
+            System.out.println("\tScore: "+finalScoreOfGame);
 
-            games--;
+            System.out.println("\n\n\n");
+
+            games++;
         }
     }
 
