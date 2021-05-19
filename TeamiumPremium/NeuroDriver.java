@@ -7,14 +7,16 @@ import java.util.ArrayList;
 import ProjectThreeEngine.*;
 
 public class NeuroDriver {
+    
     public static void main(String[] args) {
-        Claustrophobium claustrophobium = new Claustrophobium();
-        DeepQiumPlayer premiumAI = new DeepQiumPlayer();
-
+        int wins = 0;
         int games = 0;
-        int gameLimit = Integer.parseInt(args[0]);
-        int turnLimit = Integer.parseInt(args[1]);
+        int gameLimit = 2000;//Integer.parseInt(args[0]);
+        int turnLimit = 500;//Integer.parseInt(args[1]);
 
+        Claustrophobium claustrophobium = new Claustrophobium();
+        DeepQiumPlayer premiumAI = new DeepQiumPlayer(gameLimit);
+        
         while (games < gameLimit) {
 
             GameState gameState = new GameState("Claustrophobium", "DeepQiumPlayer");
@@ -23,7 +25,7 @@ public class NeuroDriver {
             premiumAI.begin(new GameState(gameState), 1);
 
             int turnNum = 0;
-            
+           
             int winner = -1;
 
             while (true) {
@@ -43,8 +45,9 @@ public class NeuroDriver {
                 }
 	    	}
 
+            wins += winner == 1 ? 1 : 0;
             double won = winner == 1 ? 1 : -1;
-            double finalScoreOfGame = ((won / turnNum) + 1) / 2;
+            double finalScoreOfGame = turnNum;
             // double finalScoreOfGame = gameState.getSnake(1).getBody().size() / 100.0;
             premiumAI.finalScoreOfGame(finalScoreOfGame);
 
@@ -58,6 +61,7 @@ public class NeuroDriver {
 
             games++;
         }
+        System.out.println("WINS: " + wins);
     }
 
     static GameState nextTurn(GameState state, Player p0, Player p1) {

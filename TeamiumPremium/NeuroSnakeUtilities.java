@@ -2,7 +2,6 @@ package TeamiumPremium;
 
 import ProjectThreeEngine.*;
 import java.util.*;
-import org.neuroph.core.data.*;
 
 /**
  *
