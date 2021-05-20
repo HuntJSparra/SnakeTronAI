@@ -4,22 +4,27 @@ import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
 
+import javafx.application.Application;
+
 import ProjectThreeEngine.*;
 
 public class NeuroDriver {
     
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
         int wins = 0;
         int games = 0;
-        int gameLimit = 2000;//Integer.parseInt(args[0]);
+        int gameLimit = 500;//Integer.parseInt(args[0]);
         int turnLimit = 500;//Integer.parseInt(args[1]);
 
         Claustrophobium claustrophobium = new Claustrophobium();
-        DeepQiumPlayer premiumAI = new DeepQiumPlayer(gameLimit);
+        // DeepQiumPlayer premiumAI = new DeepQiumPlayer(gameLimit);
+        ConvolutiumPlayer premiumAI = new ConvolutiumPlayer(gameLimit);
+
         
         while (games < gameLimit) {
 
-            GameState gameState = new GameState("Claustrophobium", "DeepQiumPlayer");
+            GameState gameState = new GameState("Claustrophobium", "ConvolutiumPlayer");
+            // GameState gameState = new GameState("Claustrophobium", "DeepQium");
 
             claustrophobium.begin(new GameState(gameState), 0);
             premiumAI.begin(new GameState(gameState), 1);
@@ -29,9 +34,24 @@ public class NeuroDriver {
             int winner = -1;
 
             while (true) {
+                GameState oldState = gameState;
+
                 gameState = nextTurn(gameState, claustrophobium, premiumAI);
                 turnNum++;
+                
+                // Scoring
+                GameState newState = gameState;
 
+                int bodiesGanied = newState.getSnake(1).getBody().size() - oldState.getSnake(1).getBody().size(); // aka food eaten
+                int winningPoints = (gameState.getWinner() == 1) ? 1000 : 0;
+                if (winningPoints > 0) System.out.println("Winner!");
+
+                boolean done = (turnNum >= turnLimit) || gameState.isGameOver();
+
+                premiumAI.scoreTurn(gameState, winningPoints + 10*bodiesGanied, done);
+                premiumAI.updateNetwork();
+
+                
                 //If we hit the turn limit, the longer snake wins
                 if (turnNum >= turnLimit) {
                     int longestSnakeOrRandom = getLongestSnakeOrRandom(gameState);
@@ -43,25 +63,34 @@ public class NeuroDriver {
                     winner = gameState.getWinner();
                     break;
                 }
-	    	}
+            }
+            
+            premiumAI.endGame();
 
             wins += winner == 1 ? 1 : 0;
             double won = winner == 1 ? 1 : -1;
             double finalScoreOfGame = turnNum;
             // double finalScoreOfGame = gameState.getSnake(1).getBody().size() / 100.0;
-            premiumAI.finalScoreOfGame(finalScoreOfGame);
+            //premiumAI.finalScoreOfGame(finalScoreOfGame);
 
             System.out.println("GAME #" + games);
             System.out.println("\tTurns elapsed: " + turnNum);
+            System.out.println("\tRandomness: "+ premiumAI.getChanceOfRandomMove());
             System.out.println("\tWinner: " + winner);
             System.out.println("\tSnake length: " + (gameState.getSnake(1).getBody().size() + 1));
-            System.out.println("\tScore: "+finalScoreOfGame);
+            System.out.println("\tOpponent length: " + (gameState.getSnake(0).getBody().size() + 1));
+            // System.out.println("\tScore: "+finalScoreOfGame);
 
             System.out.println("\n\n\n");
 
             games++;
         }
         System.out.println("WINS: " + wins);
+
+        // premiumAI.save("trainedNetwork.premium");
+        premiumAI.save("trainedConvolution.premium");
+
+        // Application.launch(AIGameApp.class, new String[]{});
     }
 
     static GameState nextTurn(GameState state, Player p0, Player p1) {

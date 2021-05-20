@@ -22,8 +22,9 @@ import org.nd4j.common.primitives.Pair;
 import org.nd4j.linalg.api.ndarray.*;
 import org.deeplearning4j.datasets.iterator.*;
 import org.nd4j.linalg.cpu.nativecpu.NDArray;
+import org.deeplearning4j.nn.conf.inputs.InputType;
 
-public class DeepQiumPlayer implements Player {
+public class ConvolutiumPlayer implements Player {
 
     MultiLayerNetwork nn;
 
@@ -55,7 +56,7 @@ public class DeepQiumPlayer implements Player {
         }
     }
 
-    public DeepQiumPlayer(int gameLimit) {
+    public ConvolutiumPlayer(int gameLimit) {
         // Memory
         this.gameLimit = gameLimit;
         obs = new CircularArrayList<Observation>();
@@ -63,39 +64,44 @@ public class DeepQiumPlayer implements Player {
         claustrophobium = new Claustrophobium();
 
         // DL4J
-        int numIn = 1536;
-        int numHid1 = 128;
-        int numHid2 = 128;
-        int numHid3 = 128;
         int numOut = 4;
 
+        int spaceEncodingSize = 6;
+        int kernelSize = 6;
+
         // .backprop is deprecated?
+        // new ConvolutionLayer.Builder(Array[Int](7,7), Array[Int](2,2), Array[Int](3,3))
+                //.nIn(inputShape(0))
+                //.nOut(64)
+                //.cudnnAlgoMode(ConvolutionLayer.AlgoMode.NO_WORKSPACE)
         this.nn = new MultiLayerNetwork(new NeuralNetConfiguration.Builder()
                 //.seed(12345)
                 .weightInit(WeightInit.XAVIER)
                 .updater(new Adam(0.00025))
                 .list(
-                        new DenseLayer.Builder().nIn(numIn).nOut(numHid1).activation(Activation.LEAKYRELU).build(),
-                        new DenseLayer.Builder().nIn(numHid1).nOut(numHid2).activation(Activation.LEAKYRELU).build(),
-                        new DenseLayer.Builder().nIn(numHid2).nOut(numHid3).activation(Activation.LEAKYRELU).build(),
-                        new OutputLayer.Builder(LossFunction.MSE).activation(Activation.SOFTMAX).nIn(numHid2).nOut(numOut).build()
-                ).build());
+                        new ConvolutionLayer.Builder().kernelSize(kernelSize, kernelSize).stride(1, 1).nOut(10).activation(Activation.IDENTITY).build(),
+                        new SubsamplingLayer.Builder(SubsamplingLayer.PoolingType.AVG).kernelSize(2, 2).stride(2, 2).build(),
+                        new DenseLayer.Builder().nIn(250).nOut(4).activation(Activation.LEAKYRELU).build(),
+                        new OutputLayer.Builder(LossFunction.MSE).activation(Activation.SOFTMAX).nIn(4).nOut(numOut).build()
+                )
+                .setInputType(InputType.convolutionalFlat(16, 16, spaceEncodingSize))
+                .build());
 
         this.nn.init();
     }
 
-    public DeepQiumPlayer(String filePath) {
-        // If you try to train it... bad stuff will happen (other variables aren't initialized)
-        try {
-            this.nn = MultiLayerNetwork.load(new File(filePath), false);
-            this.chanceOfRandomMove = 0.0;
-            this.gameLimit = 0;
-            this.claustrophobium = new Claustrophobium();
-        } catch (Exception e) {
-            System.err.println("Error loading network:");
-            e.printStackTrace();
-        }
-    }
+    // public DeepQiumPlayer(String filePath) {
+    //     // If you try to train it... bad stuff will happen (other variables aren't initialized)
+    //     try {
+    //         this.nn = MultiLayerNetwork.load(new File(filePath), false);
+    //         this.chanceOfRandomMove = 0.0;
+    //         this.gameLimit = 0;
+    //         this.claustrophobium = new Claustrophobium();
+    //     } catch (Exception e) {
+    //         System.err.println("Error loading network:");
+    //         e.printStackTrace();
+    //     }
+    // }
 
     @Override
     public void begin(GameState init_state, int play_num) {
@@ -204,7 +210,7 @@ public class DeepQiumPlayer implements Player {
 
         // Train
         this.nn.fit(new DoublesDataSetIterator(trainingSet, trainingSet.size()));
-        this.chanceOfRandomMove = Math.max(0.01, this.chanceOfRandomMove*0.995);      
+        this.chanceOfRandomMove = Math.max(0.01, this.chanceOfRandomMove*0.9995);      
     }
 
     public void endGame() {
@@ -240,7 +246,7 @@ public class DeepQiumPlayer implements Player {
 
     @Override
     public String getPlayName() {
-        return "DeepQiumPlayer";
+        return "ConvolutiumPlayer";
     }
 
     private boolean isPositionDeath(GameState state, int x, int y) {
